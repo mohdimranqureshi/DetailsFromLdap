@@ -1,0 +1,56 @@
+public class LdapAuth {
+
+	public static void main(String[] args) {
+
+		Hashtable<Object, Object> env = new Hashtable<Object, Object>();
+		env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+		env.put(Context.PROVIDER_URL, "ldap://xavient.com/OU=Users,OU=N54,OU=Xav-India,dc=xavient,dc=com");
+		env.put(Context.SECURITY_AUTHENTICATION, "simple");
+		env.put(Context.SECURITY_PRINCIPAL, new String("engtool@xavient.com"));
+		env.put(Context.SECURITY_CREDENTIALS, "mega@1212");
+
+		DirContext ctx = null;
+		NamingEnumeration<SearchResult> results = null;
+		Attributes attributes = null;
+		try {
+			ctx = new InitialDirContext(env);
+			SearchControls controls = new SearchControls();
+			controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			results = ctx.search("", "mail=" + "imran1@xavient.com" + "", controls);
+			while (results.hasMore()) {
+				SearchResult searchResult = (SearchResult) results.next();
+				attributes = searchResult.getAttributes();
+				Attribute attr = attributes.get("cn");
+				String cn = (String) attr.get();
+				System.out.println("User Name is ::" +cn);
+
+				String[] managerName = (String[]) attributes.get("manager").get().toString().split(",");
+				String[] name = managerName[0].split("=");
+				System.out.println("Manager Name is ::" +name[1]);
+
+				System.out.println(attributes.get("displayName").get().toString());
+
+				System.out.println("User's Email Id is ::" +attributes.get("mail").get().toString());
+				System.out.println("User's Department is ::" +attributes.get("department").get().toString());
+				try {
+					String[] directReports = (String[]) attributes.get("directreports").get().toString().split(",");
+					String[] subOrdinateList = directReports[0].split("=");
+					System.out.println(subOrdinateList);
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+				}
+				results = ctx.search("", "name=" + name[1] + "", controls);
+				while (results.hasMore()) {
+					SearchResult searchResult1 = (SearchResult) results.next();
+					attributes = searchResult1.getAttributes();
+					Attribute attr1 = attributes.get("cn");
+					String cn1 = (String) attr1.get();
+					System.out.println(cn1);
+					attributes.get("mail").get().toString();
+				}
+			}
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+	}
+}
